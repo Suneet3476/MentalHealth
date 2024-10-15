@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mental Health Bot</title>
+  <style>
+    body {
+      background-color: #f4f4f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      text-align: center;
+    }
+    .container h1 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #333;
+    }
+    .container input[type="text"] {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      font-size: 1rem;
+    }
+    .container button {
+      background-color: #007aff;
+      color: white;
+      padding: 15px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .container button:hover {
+      background-color: #0056b3;
+    }
+    .response {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Mental Health Bot</h1>
+    <input type="text" id="userInput" placeholder="Type your feelings here...">
+    <button onclick="sendMessage()">Talk to me</button>
+    <div class="response" id="response"></div>
+  </div>
+
+  <script>
+    async function sendMessage() {
+      const userInput = document.getElementById('userInput').value;
+      
+      const response = await fetch('/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ user_input: userInput })
+      });
+
+      const data = await response.json();
+      const responseDiv = document.getElementById('response');
+      responseDiv.innerHTML = `<p><strong>AI:</strong> ${data.ai_response}</p>
+                               <p><strong>Sentiment:</strong> ${data.sentiment}</p>
+                               <p><strong>Music Suggestion:</strong> ${data.music_suggestion}</p>`;
+    }
+  </script>
+</body>
+</html>
