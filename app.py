@@ -5,9 +5,8 @@ import torch
 
 app = Flask(__name__)
 
-# Load Hugging Face model and tokenizer (DialoGPT-medium)
+# Load Hugging Face model and tokenizer (DialoGPT-medium) only when needed
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
-model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
 # Initialize VADER sentiment analysis
 sentiment_analyzer = SentimentIntensityAnalyzer()
@@ -26,9 +25,16 @@ def analyze_sentiment(text):
 
 # Function to generate a response using Hugging Face
 def generate_response(user_input):
-    inputs = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt")
-    response_ids = model.generate(inputs, max_length=150, pad_token_id=tokenizer.eos_token_id)
+    # Load model lazily to save memory
+    model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium").half()  # Use half-precision
+    inputs = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt").to('cuda' if torch.cuda.is_available() else 'cpu')
+    response_ids = model.generate(inputs, max_length=50, pad_token_id=tokenizer.eos_token_id)  # Reduced max length
     response_text = tokenizer.decode(response_ids[:, inputs.shape[-1]:][0], skip_special_tokens=True)
+    
+    # Clean up memory
+    del model
+    torch.cuda.empty_cache()  # If using GPU, clear cache to free up memory
+    
     return response_text
 
 # Function to suggest calming music (optional feature)
@@ -69,4 +75,4 @@ def index():
 
 # Main entry point
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
